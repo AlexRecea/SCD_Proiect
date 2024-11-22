@@ -4,8 +4,8 @@ const mysql = require('mysql2');
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_NAME || 'test_db'
+    password: process.env.DB_PASSWORD || 'ArkhamAsylum44',
+    database: process.env.DB_NAME || 'bloggingdb'
 });
 
 // Conectare la baza de date
