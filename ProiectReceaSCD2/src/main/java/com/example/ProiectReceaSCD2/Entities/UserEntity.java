@@ -5,23 +5,25 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Data
 public class UserEntity {
 
     @Id
-    @Getter
-    @Setter
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //face autoincrement
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Getter
-    @Setter
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @Getter
-    @Setter
-    @Column(nullable = false) //poti sa faci sa fie si unic
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostEntity> posts;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CommentEntity> comments;
 }

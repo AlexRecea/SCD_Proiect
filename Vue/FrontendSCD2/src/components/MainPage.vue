@@ -1,35 +1,25 @@
 <template>
   <div>
-    <!-- Buton pentru afișarea/ascunderea tabelului -->
-    <button @click="toggleTable">
-      {{ showTable ? 'Hide All Posts' : 'Show All Posts' }}
-    </button>
-
-    <!-- Indicator de încărcare -->
-    <p v-if="isLoading">Loading...</p>
-
-    <!-- Mesaj de eroare -->
-    <p v-if="error" style="color: red;">{{ error }}</p>
-
-    <!-- Buton pentru reîncărcarea datelor -->
-    <button v-if="showTable && !isLoading" @click="getPosts">Reload Posts</button>
-
-    <!-- Tabelul va fi afișat doar dacă showTable este true -->
-    <table v-if="showTable && !isLoading">
+    <h1>All Posts</h1>
+    <table>
       <thead>
         <tr>
           <th>Title</th>
           <th>Content</th>
-          <th>Date</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="post in allPosts" :key="post.id">
+        <tr v-for="post in posts" :key="post.id">
           <td>{{ post.title }}</td>
           <td>{{ post.content }}</td>
+          <td>{{ post.user.name }}</td>
+          <td>{{ post.status }}</td>
           <td>
-            {{ new Date(post.created_on).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}
-            {{ new Date(post.created_on).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }}
+            <button @click="acceptPost(post.id)">Accept</button>
+            <button @click="removePost(post.id)">Remove</button>
           </td>
         </tr>
       </tbody>
@@ -37,96 +27,88 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import axios from 'axios'
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-// Definirea tipului Post
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  user_id: string;
-  created_on: string;
-}
+const posts = ref([]);
+const router = useRouter();
 
-// Variabile reactive pentru date și starea aplicației
-const allPosts = ref<Post[]>([])
-const showTable = ref(false)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-
-// Funcția pentru a obține postările de la server
-const getPosts = async () => {
-  isLoading.value = true
-  error.value = null
+const fetchPosts = async () => {
   try {
-    const response = await axios.get('http://localhost:8083/getAllPosts')
-    allPosts.value = response.data
-  } catch (err) {
-    error.value = 'Failed to fetch posts. Please try again later.'
-  } finally {
-    isLoading.value = false
+    const response = await axios.get('http://localhost:8083/getAllPosts');
+    posts.value = response.data;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
   }
-}
+};
 
-// Funcția pentru afișarea/ascunderea tabelului
-const toggleTable = () => {
-  if (!showTable.value) {
-    getPosts()
+const acceptPost = async (postId) => {
+  try {
+    await axios.put(`http://localhost:8083/updateStatus/${postId}`, {
+      status: 'PUBLISHED'
+    });
+    fetchPosts(); // Refresh the list
+  } catch (error) {
+    console.error('Failed to accept the post:', error);
   }
-  showTable.value = !showTable.value
-}
+};
+
+const removePost = async (postId) => {
+  try {
+    await axios.put(`http://localhost:8083/updateStatus/${postId}`, {
+      status: 'REMOVED'
+    });
+    fetchPosts(); // Refresh the list
+  } catch (error) {
+    console.error('Failed to remove the post:', error);
+  }
+};
+
+onMounted(() => {
+  const user = localStorage.getItem('user');
+  if (!user) {
+    router.push('/'); // Redirecționează la login dacă utilizatorul nu e autentificat
+  } else {
+    fetchPosts();
+  }
+});
 </script>
 
 <style scoped>
-/* Stiluri pentru butoane */
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 20px;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-
-/* Stiluri pentru tabel */
 table {
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
-  font-size: 16px;
-  text-align: left;
 }
 
-th {
+thead {
   background-color: #4CAF50;
   color: white;
-  padding: 12px;
-  border: 1px solid #ddd;
 }
 
-td {
-  padding: 12px;
+td,
+th {
   border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
 }
 
 tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-tr:hover {
-  background-color: #e2e2e2;
+button {
+  padding: 5px 10px;
+  margin: 0 5px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-/* Stiluri pentru mesajele de eroare */
-p {
-  font-size: 16px;
+button:hover {
+  background-color: #45a049;
 }
 </style>

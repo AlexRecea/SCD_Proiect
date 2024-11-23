@@ -8,18 +8,18 @@ BASE_URL = "http://localhost:8083"
 current_user_name = None
 current_user_email = None
 
-# Funcția pentru a verifica dacă utilizatorul există
+# Funcția pentru a verifica dacă utilizatorul există prin endpoint-ul /login
 def login_user(name, email):
     try:
-        response = requests.get(f"{BASE_URL}/getAllUsers")
+        payload = {"name": name, "email": email}
+        response = requests.post(f"{BASE_URL}/login", json=payload)
         if response.status_code == 200:
-            users = response.json()
-            for user in users:
-                if user["name"] == name and user["email"] == email:
-                    return True
+            return True
+        elif response.status_code == 401:
+            messagebox.showerror("Error", "Invalid name or email.")
             return False
         else:
-            messagebox.showerror("Error", "Failed to fetch users.")
+            messagebox.showerror("Error", f"Login failed with status code {response.status_code}.")
             return False
     except requests.exceptions.RequestException as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
@@ -118,7 +118,9 @@ def refresh_posts():
 
     # Adaugă fiecare postare în tabel
     for post in posts:
-        tree.insert("", "end", values=(post["id"], post["title"], post["content"], post["status"], post["user_id"], post["created_on"]))
+        #user_id = post.get("user_id", "N/A")  # Fallback dacă user_id lipsește
+        tree.insert("", "end", values=(post["id"], post["title"], post["content"], post.get("status", "UNKNOWN"), post.get("user_id", "UNKNOWN"), post.get("created_on", "UNKNOWN")))
+
 # Funcția apelată când se apasă pe butonul Accept
 def on_accept_button_click():
     selected_item = tree.selection()

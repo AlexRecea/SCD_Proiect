@@ -2,6 +2,18 @@ import requests
 
 BASE_URL = "http://localhost:8083"
 
+def login_user(name: str, email: str):
+    try:
+        response = requests.post(f"{BASE_URL}/api/users/login", json={"name": name, "email": email})
+        if response.status_code == 200:
+            return response.json()  # Returnează datele utilizatorului
+        elif response.status_code == 401:
+            return {"error": "Invalid credentials"}
+        else:
+            return {"error": f"Unexpected error: {response.status_code}"}
+    except requests.RequestException as e:
+        return {"error": f"Request failed: {e}"}
+
 def get_posts():
     try:
         response = requests.get(f"{BASE_URL}/getAllPosts")
