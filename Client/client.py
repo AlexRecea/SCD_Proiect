@@ -34,11 +34,11 @@ def open_main_page():
         widget.destroy()
 
     # Configurarea interfeței principale
-    root.title(f"Post Management - Logged in as {current_user_name}")
-    root.geometry("900x500")
+    root.title(f"Post Management - Logged in as Admin")
+    root.geometry("1200x700")
 
     # Crearea tabelului (Treeview)
-    columns = ("ID", "Title", "Content", "Status", "User ID", "Date")
+    columns = ("ID", "Title", "Content", "Status", "User", "Date")
     tree = ttk.Treeview(root, columns=columns, show="headings")
 
     for col in columns:
@@ -62,7 +62,6 @@ def open_main_page():
 
     # Încărcarea postărilor la pornire
     refresh_posts()
-
 # Funcția pentru a încărca toate postările
 def get_all_posts():
     try:
@@ -118,8 +117,16 @@ def refresh_posts():
 
     # Adaugă fiecare postare în tabel
     for post in posts:
-        #user_id = post.get("user_id", "N/A")  # Fallback dacă user_id lipsește
-        tree.insert("", "end", values=(post["id"], post["title"], post["content"], post.get("status", "UNKNOWN"), post.get("user_id", "UNKNOWN"), post.get("created_on", "UNKNOWN")))
+        user_name = post["user"]["name"] if post.get("user") else "UNKNOWN"
+        created_date = post["created_on"][:10] if post.get("created_on") else "UNKNOWN"
+        tree.insert("", "end", values=(
+            post["id"],
+            post["title"],
+            post["content"],
+            post["status"],
+            user_name,
+            created_date
+        ))
 
 # Funcția apelată când se apasă pe butonul Accept
 def on_accept_button_click():

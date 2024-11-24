@@ -1,5 +1,6 @@
 package com.example.ProiectReceaSCD2.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,12 +19,14 @@ public class CommentEntity {
     @Column(nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY) // Relația Many-to-One către PostEntity
-    @JoinColumn(name = "post_id", nullable = false) // FK în tabela Comment
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+//    @JsonIgnoreProperties("comments") // Ignoră câmpul "comments" din PostEntity pentru a preveni ciclurile infinite
     private PostEntity post;
 
-    @ManyToOne(fetch = FetchType.LAZY) // Relația Many-to-One către UserEntity
-    @JoinColumn(name = "user_id", nullable = false) // FK în tabela Comment
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+//    @JsonIgnoreProperties("comments") // Ignoră câmpul "comments" din UserEntity pentru a preveni ciclurile infinite
     private UserEntity user;
 
     @Column(nullable = false)

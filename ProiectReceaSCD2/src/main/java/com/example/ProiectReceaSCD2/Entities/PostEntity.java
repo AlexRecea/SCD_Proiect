@@ -1,5 +1,6 @@
 package com.example.ProiectReceaSCD2.Entities;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class PostEntity {
 
     @Id
@@ -23,11 +25,13 @@ public class PostEntity {
     @Column(nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // FK către UserEntity
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private UserEntity user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true) // Legătura inversă
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+//    @JsonIgnoreProperties("post") // Ignoră câmpul "post" din CommentEntity
     private List<CommentEntity> comments;
 
     @Column(nullable = false)
@@ -43,4 +47,5 @@ public class PostEntity {
             status = Status.PENDING; // Setează valoarea implicită PENDING
         }
     }
+
 }

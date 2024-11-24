@@ -23,9 +23,21 @@ public class UserController {
         this.userService = userService;
     }
 
+//    @PostMapping("/createUser")
+//    public ResponseEntity<?> createUser(@RequestBody UserEntity userEntity) {
+//        System.out.println("Received user data: " + userEntity);
+//        try {
+//            UserEntity savedUser = userRepository.save(userEntity);
+//            return ResponseEntity.ok(savedUser);
+//        } catch (Exception e) {
+//            System.out.println("Error: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user");
+//        }
+//    }
     @PostMapping("/createUser")
-    public UserEntity setUser(@RequestBody UserEntity userEntity) {
-        return userService.createUser(userEntity);
+    public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity user){
+        UserEntity createdUser = userService.createUser(user);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/getAllUsers")
