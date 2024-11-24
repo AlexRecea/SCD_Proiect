@@ -22,4 +22,15 @@ public class CommentDTO {
     @Getter
     @Setter
     private String userName; // Numele utilizatorului care a creat comentariul
+
+    // Constructor
+    public CommentDTO(Integer id, String content, String userName) {
+        this.id = id;
+        this.content = content;
+        this.userName = userName;
+    }
+
+    public CommentDTO() {
+
+    }
 }

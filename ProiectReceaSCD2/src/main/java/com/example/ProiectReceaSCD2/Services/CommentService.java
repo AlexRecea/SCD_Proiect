@@ -1,16 +1,20 @@
 package com.example.ProiectReceaSCD2.Services;
 
+import com.example.ProiectReceaSCD2.DTOs.CommentDTO;
 import com.example.ProiectReceaSCD2.Entities.CommentEntity;
 import com.example.ProiectReceaSCD2.Repository.CommentRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
 
+    @Autowired
     private final CommentRepository commentRepository;
 
     public CommentService(CommentRepository commentRepository) {
@@ -43,8 +47,19 @@ public class CommentService {
         }
     }
 
-    public List<CommentEntity> getAllComments() {
-        return commentRepository.findAll();
+
+    public List<CommentDTO> getCommentsByPost(Integer postId) {
+        return commentRepository.findByPostId(postId).stream()
+                .map(comment -> new CommentDTO(
+                        comment.getId(),
+                        comment.getContent(),
+                        comment.getUser().getName() // presupunem că user-ul este asociat corect
+                ))
+                .collect(Collectors.toList());
     }
 
+
+    public CommentEntity findCommentById(Integer commentId) {
+        return commentRepository.findById(commentId).orElse(null);
+    }
 }

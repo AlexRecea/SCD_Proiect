@@ -1,5 +1,6 @@
 package com.example.ProiectReceaSCD2.Controllers;
 
+import com.example.ProiectReceaSCD2.DTOs.CommentDTO;
 import com.example.ProiectReceaSCD2.Entities.CommentEntity;
 import com.example.ProiectReceaSCD2.Entities.PostEntity;
 import com.example.ProiectReceaSCD2.Entities.UserEntity;
@@ -8,6 +9,7 @@ import com.example.ProiectReceaSCD2.Repository.PostRepository;
 import com.example.ProiectReceaSCD2.Repository.UserRepository;
 import com.example.ProiectReceaSCD2.Services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,15 +73,24 @@ public class CommentController {
         return commentService.updateComment(id, commentEntity);
     }
 
-    @DeleteMapping("/deleteComment/{id}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Integer id){
-        commentService.deleteComment(id);
+    @DeleteMapping("/deleteComment/{postId}/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Integer postId,
+            @PathVariable Integer commentId) {
+        // Validează dacă comentariul aparține postării
+        CommentEntity comment = commentService.findCommentById(commentId);
+        if (comment == null || !comment.getPost().getId().equals(postId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // Șterge comentariul
+        commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/getAllComment")
-    public ResponseEntity<List<CommentEntity>> getAllComment(){
-        List<CommentEntity> comments = commentService.getAllComments();
+    @GetMapping("/getCommentsByPost/{postId}")
+    public ResponseEntity<List<CommentDTO>> getCommentsByPost(@PathVariable Integer postId) {
+        List<CommentDTO> comments = commentService.getCommentsByPost(postId);
         return ResponseEntity.ok(comments);
     }
 }

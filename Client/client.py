@@ -1,12 +1,15 @@
 import requests
+import tkinter as tk
 from tkinter import Tk, ttk, messagebox, Label, Entry, Button
-
+from datetime import datetime
 # URL-ul de bază al serverului
 BASE_URL = "http://localhost:8083"
 
 # Variabile globale pentru utilizatorul logat
 current_user_name = None
 current_user_email = None
+
+
 
 # Funcția pentru a verifica dacă utilizatorul există prin endpoint-ul /login
 def login_user(name, email):
@@ -60,6 +63,8 @@ def open_main_page():
     refresh_button = ttk.Button(button_frame, text="Refresh", command=refresh_posts)
     refresh_button.pack(side="left", padx=5)
 
+    show_comments_button = ttk.Button(button_frame, text="Show Comments", command=open_comments_popup)
+    show_comments_button.pack(side="left", padx=5)
     # Încărcarea postărilor la pornire
     refresh_posts()
 # Funcția pentru a încărca toate postările
@@ -69,7 +74,7 @@ def get_all_posts():
         if response.status_code == 200:
             return response.json()
         else:
-            messagebox.showerror("Error", "Failed to fetch posts.")
+            messagebox.showerror("Error", f"Failed to fetch posts: {response.status_code}")
             return []
     except requests.exceptions.RequestException as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
@@ -117,8 +122,18 @@ def refresh_posts():
 
     # Adaugă fiecare postare în tabel
     for post in posts:
-        user_name = post["user"]["name"] if post.get("user") else "UNKNOWN"
-        created_date = post["created_on"][:10] if post.get("created_on") else "UNKNOWN"
+        # Accesează userName și createdOn din JSON
+        user_name = post.get("userName", "UNKNOWN")
+        created_date = post.get("createdOn", "UNKNOWN")
+        
+        # Formatează data dacă există
+        if created_date != "UNKNOWN":
+            try:
+                created_date = datetime.fromisoformat(created_date).strftime("%d-%m-%Y %H:%M:%S")
+            except ValueError:
+                created_date = "INVALID DATE"
+
+        # Adaugă rândul în tabel
         tree.insert("", "end", values=(
             post["id"],
             post["title"],
@@ -186,6 +201,89 @@ def show_login_page():
 
     Button(root, text="Login", command=on_login).pack(pady=10)
 
+def open_comments_popup():
+    selected_item = tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Warning", "No post selected.")
+        return
+
+    post_id = tree.item(selected_item, "values")[0]
+    post_title = tree.item(selected_item, "values")[1]
+    # Creează fereastra popup
+    popup = tk.Toplevel(root)
+    popup.title(f"Comments for Post {post_id} - {post_title}")
+    popup.geometry("600x400")
+
+    # Crearea tabelului pentru comentarii
+    columns = ("ID", "User", "Content")
+    comments_tree = ttk.Treeview(popup, columns=columns, show="headings")
+
+    for col in columns:
+        comments_tree.heading(col, text=col)
+        comments_tree.column(col, width=150)
+
+    comments_tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # Funcție pentru a încărca comentariile în tabel
+    def refresh_comments():
+        for row in comments_tree.get_children():
+            comments_tree.delete(row)
+
+        comments = get_comments_for_post(post_id)
+
+        for comment in comments:
+            comments_tree.insert("", "end", values=(
+                comment["id"],
+                comment["userName"],
+                comment["content"]
+            ))
+
+    # Funcție pentru a șterge un comentariu selectat
+    def delete_comment():
+        selected_comment = comments_tree.selection()
+        if not selected_comment:
+            messagebox.showwarning("Warning", "No comment selected.")
+            return
+
+        comment_id = comments_tree.item(selected_comment, "values")[0]
+        if delete_comment_from_server(post_id, comment_id):
+            refresh_comments()
+
+    # Buton pentru Refresh
+    refresh_button = ttk.Button(popup, text="Refresh", command=refresh_comments)
+    refresh_button.pack(side="left", padx=10, pady=10)
+
+    # Buton pentru Delete
+    delete_button = ttk.Button(popup, text="Delete", command=delete_comment)
+    delete_button.pack(side="left", padx=10, pady=10)
+
+    # Încarcă comentariile la deschiderea popup-ului
+    refresh_comments()
+
+def get_comments_for_post(post_id):
+    try:
+        response = requests.get(f"{BASE_URL}/getCommentsByPost/{post_id}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            messagebox.showerror("Error", f"Failed to fetch comments for post {post_id}.")
+            return []
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+        return []
+    
+def delete_comment_from_server(post_id, comment_id):
+    url = f"{BASE_URL}/deleteComment/{post_id}/{comment_id}"
+    try:
+        response = requests.delete(url)
+        if response.status_code == 204:
+            messagebox.showinfo("Success", "Comment deleted successfully.")
+        elif response.status_code == 404:
+            messagebox.showerror("Error", "Comment not found or does not belong to the specified post.")
+        else:
+            messagebox.showerror("Error", f"Failed to delete comment. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
 # Configurarea interfeței grafice cu Tkinter
 root = Tk()
 show_login_page()
