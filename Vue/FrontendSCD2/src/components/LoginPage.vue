@@ -1,103 +1,124 @@
 <template>
   <div class="login-container">
-    <h1>Login</h1>
-    <form @submit.prevent="handleLogin">
-      <div>
-        <label for="name">Name:</label>
-        <input id="name" v-model="name" type="text" required />
-      </div>
-      <div>
-        <label for="email">Email:</label>
-        <input id="email" v-model="email" type="email" required />
-      </div>
-      <button type="submit">Login</button>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    </form>
+    <div class="login-card">
+      <h1>Welcome Back!</h1>
+      <p>Please log in to access your account.</p>
+
+      <label for="name">Name</label>
+      <input v-model="name" type="text" id="name" placeholder="Enter your name" />
+
+      <label for="email">Email</label>
+      <input v-model="email" type="email" id="email" placeholder="Enter your email" />
+
+      <button class="login-btn" @click="login">Login</button>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
 
 export default {
-  setup() {
-    const name = ref("");
-    const email = ref("");
-    const errorMessage = ref("");
-    const router = useRouter();
-
-    const handleLogin = async () => {
-      try {
-        const response = await axios.post("http://localhost:8083/login", {
-          name: name.value,
-          email: email.value,
-        });
-        localStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/main");
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          errorMessage.value = "Invalid name or email.";
-        } else {
-          errorMessage.value = "An error occurred. Please try again later.";
-        }
-      }
-    };
-
+  data() {
     return {
-      name,
-      email,
-      errorMessage,
-      handleLogin,
+      name: "",
+      email: "",
     };
+  },
+  methods: {
+    login() {
+      if (!this.name || !this.email) {
+        alert("Please fill out both fields.");
+        return;
+      }
+
+      axios
+        .post("http://localhost:8083/login", { name: this.name, email: this.email })
+        .then((response) => {
+          if (response.status === 200) {
+            // Save user data in localStorage and navigate to MainPage
+            localStorage.setItem("userName", this.name);
+            localStorage.setItem("userEmail", this.email);
+            this.$router.push("/main");
+          } else {
+            alert("Login failed. Please check your credentials.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error during login:", error);
+          alert("An error occurred. Please try again later.");
+        });
+    },
   },
 };
 </script>
 
 <style scoped>
+/* General styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #fff4e6;
+  color: #4a4a4a;
+}
+
+/* Login container styles */
 .login-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #fff4e6;
 }
 
-form div {
+.login-card {
+  background-color: #ffe5cc;
+  border: 2px solid #d35400;
+  border-radius: 10px;
+  padding: 30px;
+  width: 350px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-card h1 {
   margin-bottom: 15px;
+  color: #d35400;
 }
 
-label {
+.login-card p {
+  margin-bottom: 20px;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.login-card label {
   display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
+  margin: 10px 0 5px;
+  font-size: 1rem;
+  color: #4a4a4a;
 }
 
-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
+.login-card input {
   width: 100%;
   padding: 10px;
-  background-color: #4caf50;
+  margin-bottom: 15px;
+  border: 1px solid #d35400;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.login-btn {
+  background-color: #d35400;
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #45a049;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
+.login-btn:hover {
+  background-color: #e67e22;
 }
 </style>
