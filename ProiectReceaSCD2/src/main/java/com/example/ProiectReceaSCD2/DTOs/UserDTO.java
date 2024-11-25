@@ -18,11 +18,20 @@ public class UserDTO {
     @Setter
     private String email;
 
-    public UserDTO(UserEntity user) {
-        this.id = user.getId();
-        this.name = user.getName();
-        this.email = user.getEmail();
+    public UserDTO() {
+
     }
 
-
+//    public UserDTO(UserEntity user) {
+//        this.id = user.getId();
+//        this.name = user.getName();
+//        this.email = user.getEmail();
+//    }
+//
+//    public UserDTO(Integer id, String name, String email) {
+//    }
+//
+//    public UserDTO() {
+//
+//    }
 }

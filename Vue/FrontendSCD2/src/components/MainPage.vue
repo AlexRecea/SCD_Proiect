@@ -1,8 +1,9 @@
 <template>
   <div>
     <h1>Published Posts</h1>
-    <button @click="showModal = true" class="create-button">Create Post</button>
+    <button @click="openCreatePostModal" class="create-button">Create Post</button>
 
+    <!-- Modal pentru crearea unei postări -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <h3>Create a New Post</h3>
@@ -30,17 +31,42 @@
           </div>
           <div class="button-group">
             <button type="submit" class="submit-button">Submit</button>
-            <button type="button" @click="showModal = false" class="cancel-button">Cancel</button>
+            <button type="button" @click="closeCreatePostModal" class="cancel-button">Cancel</button>
           </div>
         </form>
       </div>
     </div>
 
+    <!-- Modal pentru adăugarea unui comentariu -->
+    <div v-if="showCommentModal" class="modal">
+      <div class="modal-content">
+        <h3>Add a Comment</h3>
+        <form @submit.prevent="addComment">
+          <div class="form-group">
+            <label for="comment-content">Comment:</label>
+            <textarea
+              id="comment-content"
+              v-model="newComment.content"
+              required
+              placeholder="Enter your comment"
+              class="textarea-field"
+            ></textarea>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="submit-button">Submit</button>
+            <button type="button" @click="closeCommentModal" class="cancel-button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Postări publicate -->
     <div v-for="post in publishedPosts" :key="post.id" class="post-card">
       <h2>{{ post.title }}</h2>
       <p>{{ post.content }}</p>
       <p><strong>Author:</strong> {{ post.userName || "Unknown" }}</p>
       <p><strong>Date:</strong> {{ formatDate(post.createdOn) }}</p>
+      <button @click="openCommentModal(post.id)" class="comment-button">Add Comment</button>
     </div>
   </div>
 </template>
@@ -51,22 +77,49 @@ import axios from "axios";
 export default {
   data() {
     return {
+      posts: [],
+      currentUser: JSON.parse(localStorage.getItem("currentUser")),
       showModal: false,
+      showCommentModal: false, // Pentru controlul popup-ului de comentarii
       post: {
         title: "",
+        content: "",
+      },
+      newComment: {
+        postId: null, // ID-ul postării curente pentru comentarii
         content: "",
       },
       publishedPosts: [],
     };
   },
   methods: {
+    // Deschide modalul pentru crearea postărilor
+    openCreatePostModal() {
+      this.showModal = true;
+      this.showCommentModal = false; // Închide modalul de comentarii, dacă e deschis
+    },
+    closeCreatePostModal() {
+      this.showModal = false;
+    },
+    // Deschide modalul pentru comentarii
+    openCommentModal(postId) {
+      this.showCommentModal = true;
+      this.showModal = false; // Închide modalul de creare postare, dacă e deschis
+      this.newComment = {
+        postId,
+        content: "",
+      };
+    },
+    closeCommentModal() {
+      this.showCommentModal = false;
+    },
     async createPost() {
       try {
         const payload = {
           title: this.post.title,
           content: this.post.content,
           user: {
-            id: 1, // ID-ul utilizatorului logat, ajustat conform aplicației
+            id: this.currentUser.id,
           },
         };
 
@@ -74,9 +127,7 @@ export default {
 
         if (response.status === 201 || response.status === 200) {
           alert("Post created successfully!");
-          this.showModal = false;
-          this.post.title = "";
-          this.post.content = "";
+          this.closeCreatePostModal();
           this.fetchPublishedPosts();
         } else {
           alert("Failed to create the post. Please try again.");
@@ -84,6 +135,28 @@ export default {
       } catch (error) {
         console.error("Error creating post:", error);
         alert("An error occurred while creating the post.");
+      }
+    },
+    async addComment() {
+      try {
+        const payload = {
+          content: this.newComment.content,
+          postId: this.newComment.postId,
+          userId: this.currentUser.id
+        };
+
+        const response = await axios.post("http://localhost:8083/addComment", payload);
+
+        if (response.status === 201 || response.status === 200) {
+          alert("Comment added successfully!");
+          this.closeCommentModal();
+          this.fetchPublishedPosts();
+        } else {
+          alert("Failed to add the comment. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error adding comment:", error);
+        alert("An error occurred while adding the comment.");
       }
     },
     async fetchPublishedPosts() {
@@ -133,6 +206,17 @@ h1 {
   border-radius: 5px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+.comment-button {
+  background-color: #d35400;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 .create-button:hover {

@@ -26,30 +26,36 @@ export default {
     };
   },
   methods: {
-    login() {
-      if (!this.name || !this.email) {
-        alert("Please fill out both fields.");
-        return;
-      }
+  async login() {
+    try {
+      const payload = { name: this.name, email: this.email };
+      const response = await axios.post("http://localhost:8083/login", payload);
 
-      axios
-        .post("http://localhost:8083/login", { name: this.name, email: this.email })
-        .then((response) => {
-          if (response.status === 200) {
-            // Save user data in localStorage and navigate to MainPage
-            localStorage.setItem("userName", this.name);
-            localStorage.setItem("userEmail", this.email);
-            this.$router.push("/main");
-          } else {
-            alert("Login failed. Please check your credentials.");
-          }
-        })
-        .catch((error) => {
-          console.error("Error during login:", error);
-          alert("An error occurred. Please try again later.");
+      if (response.status === 200) {
+        const userIdResponse = await axios.get("http://localhost:8083/getUserId", {
+          params: { name: this.name, email: this.email },
         });
-    },
+
+        const user = {
+          id: userIdResponse.data,
+          name: this.name,
+          email: this.email,
+        };
+
+        // Stochează utilizatorul în localStorage
+        localStorage.setItem("currentUser", JSON.stringify(user));
+
+        // Navighează direct către pagina principală
+        this.$router.push("/main");
+      } else {
+        alert("Login failed.");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      alert("Login error. Please try again.");
+    }
   },
+},
 };
 </script>
 

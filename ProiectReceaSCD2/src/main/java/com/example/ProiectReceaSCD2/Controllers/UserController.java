@@ -1,5 +1,6 @@
 package com.example.ProiectReceaSCD2.Controllers;
 
+import com.example.ProiectReceaSCD2.DTOs.UserDTO;
 import com.example.ProiectReceaSCD2.Entities.UserEntity;
 import com.example.ProiectReceaSCD2.Repository.UserRepository;
 import com.example.ProiectReceaSCD2.Services.UserService;
@@ -60,6 +61,17 @@ public class UserController {
             return ResponseEntity.ok(foundUser.get());
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+    }
+
+
+    @GetMapping("/getUserId")
+    public ResponseEntity<Integer> getUserId(@RequestParam String name, @RequestParam String email) {
+        try {
+            UserDTO userDTO = userService.findUserByNameAndEmail(name, email);
+            return ResponseEntity.ok(userDTO.getId());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 }
