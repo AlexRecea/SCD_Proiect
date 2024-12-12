@@ -80,35 +80,37 @@ public class PostController {
         return ResponseEntity.ok(postDTOs);
     }
 
-//    @GetMapping("/getMyPosts")
-//    public ResponseEntity<List<PostDTO>> getMyPosts(@RequestParam Integer userId) {
-//        List<PostEntity> posts = postRepository.findByUserIdAndStatus(userId, Status.valueOf("PUBLISHED"));
-//
-//        List<PostDTO> postDTOs = posts.stream()
-//                .map(post -> new PostDTO())
-//                .collect(Collectors.toList());
-//
-//        return ResponseEntity.ok(postDTOs);
-//    }
-@GetMapping("/getMyPosts")
-public ResponseEntity<List<PostDTO>> getMyPosts(@RequestParam Integer userId) {
-    // Verificare dacă userId este null sau invalid
-    if (userId == null) {
-        return ResponseEntity.badRequest().body(Collections.emptyList());
-    }
-    // Găsirea postărilor pentru utilizatorul specificat cu status "PUBLISHED"
-    List<PostEntity> posts = postRepository.findByUserIdAndStatus(userId, Status.PUBLISHED);
+    @GetMapping("/getMyPosts")
+    public ResponseEntity<List<PostDTO>> getMyPosts(@RequestParam Integer userId) {
+        // Verificare dacă userId este null sau invalid
+        if (userId == null) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+        // Găsirea postărilor pentru utilizatorul specificat cu status "PUBLISHED"
+        List<PostEntity> posts = postRepository.findByUserIdAndStatus(userId, Status.PUBLISHED);
 
-    // Verificare dacă lista de postări este goală
-    if (posts.isEmpty()) {
-        return ResponseEntity.ok(Collections.emptyList());
-    }
-    // Convertirea în DTO-uri
-    List<PostDTO> postDTOs = posts.stream()
-            .map(post -> new PostDTO(post))
-            .collect(Collectors.toList());
+        // Verificare dacă lista de postări este goală
+        if (posts.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        // Convertirea în DTO-uri
+        List<PostDTO> postDTOs = posts.stream()
+                .map(post -> new PostDTO(post))
+                .collect(Collectors.toList());
 
-    // Returnarea listei de DTO-uri
-    return ResponseEntity.ok(postDTOs);
-}
+        // Returnarea listei de DTO-uri
+        return ResponseEntity.ok(postDTOs);
+    }
+
+    @PutMapping("/updatePost")
+    public ResponseEntity<Object> updatePost(@RequestBody PostDTO postDTO) {
+        return postRepository.findById(postDTO.getId())
+                .map(existingPost -> {
+                    existingPost.setTitle(postDTO.getTitle());
+                    existingPost.setContent(postDTO.getContent());
+                    postRepository.save(existingPost);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
