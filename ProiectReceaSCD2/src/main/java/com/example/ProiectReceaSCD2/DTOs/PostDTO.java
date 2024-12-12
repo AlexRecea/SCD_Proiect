@@ -1,5 +1,6 @@
 package com.example.ProiectReceaSCD2.DTOs;
 
+import com.example.ProiectReceaSCD2.Entities.PostEntity;
 import com.example.ProiectReceaSCD2.Entities.Status;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,17 @@ public class PostDTO {
     @Getter
     @Setter
     private List<CommentDTO> comments; // Lista de comentarii asociate postării
+
+    public PostDTO() {}
+
+    public PostDTO(PostEntity post) {
+        this.id = post.getId();
+        this.title = post.getTitle();
+        this.content = post.getContent();
+        this.status = post.getStatus();
+        this.createdOn = post.getCreated_on();
+        this.userName = post.getUser().getName();
+    }
 
     public List<CommentDTO> getComments() {
         return comments;

@@ -1,8 +1,13 @@
 <template>
   <div>
     <h1>Published Posts</h1>
-    <button @click="openCreatePostModal" class="create-button">Create Post</button>
-    <button @click="navigateToPendingPosts" class="navigate-button">Show Pending Posts</button>
+    <div class="topRowButtons">
+      <button @click="openCreatePostModal" class="create-button">Create Post</button>
+      <button @click="navigateToPendingPosts" class="navigate-button">Show Pending Posts</button>
+      <button @click="navigateToUserPosts" class="navigate-button">My Posts</button>
+      <button @click="logout" class="logout-button">Logout</button>
+    </div>
+    
 
     <!-- Modal pentru crearea unei postări -->
     <div v-if="showModal" class="modal">
@@ -134,6 +139,15 @@ export default {
     navigateToPendingPosts() {
       this.$router.push("/pending");
     },
+    navigateToUserPosts() {
+      this.$router.push("/userposts");
+    },
+    logout() {
+    // Elimină utilizatorul curent din localStorage
+    localStorage.removeItem("currentUser");
+    // Redirecționează utilizatorul către pagina de login
+    this.$router.push("/");
+  },
     async createPost() {
       try {
         const payload = {
@@ -228,7 +242,7 @@ h1 {
 }
 
 /* Stil pentru butonul de creare */
-.create-button, .navigate-button {
+.create-button, .navigate-button, .logout-button {
   display: block;
   margin: 20px auto;
   padding: 10px 20px;
@@ -241,6 +255,10 @@ h1 {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
+.topRowButtons {
+  display: flex;
+  justify-content: space-around;
+}
 
 .comment-button {
   background-color: #d35400;
@@ -252,7 +270,7 @@ h1 {
   margin-top: 10px;
 }
 
-.create-button:hover, .navigate-button:hover {
+.create-button:hover, .navigate-button:hover, .logout-button:hover {
   background-color: #933f1e;
 }
 

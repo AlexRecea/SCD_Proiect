@@ -10,12 +10,11 @@ import com.example.ProiectReceaSCD2.Repository.UserRepository;
 import com.example.ProiectReceaSCD2.Services.PostService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -37,33 +36,6 @@ public class PostController {
         this.postRepository = postRepository;
     }
 
-//    @PostMapping("/createPost")
-//    public ResponseEntity<?> createPost(@RequestBody Map<String, Object> request) {
-//        try {
-//            // Extrage datele din request
-//            String title = (String) request.get("title");
-//            String content = (String) request.get("content");
-//            Integer userId = (Integer) request.get("user_id");
-//
-//            // Verifică dacă utilizatorul există
-//            UserEntity user = userRepository.findById(userId)
-//                    .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//            // Creează și salvează postarea
-//            PostEntity postEntity = new PostEntity();
-//            postEntity.setTitle(title);
-//            postEntity.setContent(content);
-//            postEntity.setUser(user);
-//            postEntity.setStatus(Status.PENDING);
-//
-//            PostEntity savedPost = postRepository.save(postEntity);
-//            return ResponseEntity.ok(savedPost);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("Error creating post: " + e.getMessage());
-//        }
-//    }
-
     @PostMapping("/createPost")
     public ResponseEntity<?> createPost(@RequestBody PostEntity postEntity) {
         UserEntity user = userRepository.findById(postEntity.getUser().getId())
@@ -77,8 +49,6 @@ public class PostController {
     public ResponseEntity<PostEntity> updateStatus(@PathVariable Integer id, @RequestBody String status) {
         // Elimină ghilimelele de la status dacă este trimis în format JSON
         status = status.replaceAll("^\"|\"$", "");
-
-        // Verificăm dacă statusul este valid
         try {
             PostEntity updatedPost = postService.updateStatus(id, status);
             return ResponseEntity.ok(updatedPost);
@@ -101,15 +71,6 @@ public class PostController {
         return ResponseEntity.ok(post);
     }
 
-//    @GetMapping("/getAllPosts")
-//    public ResponseEntity<List<PostDTO>> getAllPosts() {
-//        List<PostEntity> posts = postRepository.findAll();
-//        List<PostDTO> postDTOs = posts.stream()
-//                .map(PostDTO::new)
-//                .collect(Collectors.toList());
-//        return ResponseEntity.ok(postDTOs);
-//    }
-
     @GetMapping("/getAllPosts")
     public ResponseEntity<List<PostDTO>> getAllPosts() {
         List<PostDTO> postDTOs = postRepository.findAll()
@@ -118,4 +79,36 @@ public class PostController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(postDTOs);
     }
+
+//    @GetMapping("/getMyPosts")
+//    public ResponseEntity<List<PostDTO>> getMyPosts(@RequestParam Integer userId) {
+//        List<PostEntity> posts = postRepository.findByUserIdAndStatus(userId, Status.valueOf("PUBLISHED"));
+//
+//        List<PostDTO> postDTOs = posts.stream()
+//                .map(post -> new PostDTO())
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(postDTOs);
+//    }
+@GetMapping("/getMyPosts")
+public ResponseEntity<List<PostDTO>> getMyPosts(@RequestParam Integer userId) {
+    // Verificare dacă userId este null sau invalid
+    if (userId == null) {
+        return ResponseEntity.badRequest().body(Collections.emptyList());
+    }
+    // Găsirea postărilor pentru utilizatorul specificat cu status "PUBLISHED"
+    List<PostEntity> posts = postRepository.findByUserIdAndStatus(userId, Status.PUBLISHED);
+
+    // Verificare dacă lista de postări este goală
+    if (posts.isEmpty()) {
+        return ResponseEntity.ok(Collections.emptyList());
+    }
+    // Convertirea în DTO-uri
+    List<PostDTO> postDTOs = posts.stream()
+            .map(post -> new PostDTO(post))
+            .collect(Collectors.toList());
+
+    // Returnarea listei de DTO-uri
+    return ResponseEntity.ok(postDTOs);
+}
 }

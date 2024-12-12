@@ -1,8 +1,10 @@
 <template>
     <div>
       <h1>Pending Posts</h1>
-      <button @click="navigateToMainPage" class="navigate-button">Back to Published Posts</button>
-  
+      <div class="topRowButtons">
+      <button @click="navigateToMainPage" class="navigate-button">Main Page</button>
+      <button @click="logout" class="logout-button">Logout</button>
+    </div>
       <!-- Postări în așteptare -->
       <div v-for="post in pendingPosts" :key="post.id" class="post-card">
         <h2>{{ post.title }}</h2>
@@ -40,7 +42,12 @@
       // Navigare înapoi la pagina principală
       navigateToMainPage() {
         this.$router.push("/main");
-      },
+        },
+        // Funcție pentru deconectare
+        logout() {
+          localStorage.removeItem("currentUser");
+          this.$router.push("/");
+        },
       async fetchPendingPosts() {
         try {
           const response = await axios.get("http://localhost:8083/getAllPosts");
