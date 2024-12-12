@@ -65,6 +65,10 @@ def open_main_page():
 
     show_comments_button = ttk.Button(button_frame, text="Show Comments", command=open_comments_popup)
     show_comments_button.pack(side="left", padx=5)
+
+    delete_post_button = ttk.Button(button_frame, text="Delete Post", command=delete_post)
+    delete_post_button.pack(side="left", padx=5)
+
     # Încărcarea postărilor la pornire
     refresh_posts()
 # Funcția pentru a încărca toate postările
@@ -109,6 +113,24 @@ def remove_post(post_id):
             messagebox.showerror("Error", "Failed to remove the post.")
     except requests.exceptions.RequestException as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
+
+# Funcția pentru a șterge o postare
+def delete_post_from_server(post_id):
+    url = f"{BASE_URL}/deletePost/{post_id}"
+    try:
+        response = requests.delete(url)
+        if response.status_code == 204:
+            messagebox.showinfo("Success", "Post deleted successfully.")
+            return True
+        elif response.status_code == 404:
+            messagebox.showerror("Error", "Post not found.")
+            return False
+        else:
+            messagebox.showerror("Error", f"Failed to delete post. Status code: {response.status_code}")
+            return False
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+        return False
 
 # Funcția pentru a încărca postările în tabel
 def refresh_posts():
@@ -164,6 +186,16 @@ def on_remove_button_click():
     post_id = tree.item(selected_item, "values")[0]
     remove_post(post_id)
     refresh_posts()
+
+def delete_post():
+    selected_item = tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Warning", "No post selected.")
+        return
+
+    post_id = tree.item(selected_item, "values")[0]
+    if delete_post_from_server(post_id):
+        refresh_posts()
 
 # Funcția pentru pagina de login
 def show_login_page():

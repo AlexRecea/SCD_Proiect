@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1>Welcome Back!</h1>
+      <h1>Welcome!</h1>
       <p>Please log in to access your account.</p>
 
       <label for="name">Name</label>
@@ -10,7 +10,14 @@
       <label for="email">Email</label>
       <input v-model="email" type="email" id="email" placeholder="Enter your email" />
 
-      <button class="login-btn" @click="login">Login</button>
+      <div class="button-group">
+        <button class="login-btn" @click="login">Login</button>
+        <p>Don't have an account?</p>
+        <button @click="navigateToRegister" type="button" class="register-button">
+          Register here
+        </button>
+      </div>
+      
     </div>
   </div>
 </template>
@@ -54,7 +61,10 @@ export default {
       console.error("Error during login:", error);
       alert("Login error. Please try again.");
     }
-  },
+    },
+    navigateToRegister() {
+      this.$router.push("/register");
+    },
 },
 };
 </script>
@@ -114,7 +124,7 @@ body {
   font-size: 1rem;
 }
 
-.login-btn {
+.login-btn, .register-button {
   background-color: #d35400;
   color: white;
   border: none;
@@ -124,7 +134,14 @@ body {
   cursor: pointer;
 }
 
-.login-btn:hover {
+.login-btn:hover, .register-button:hover {
   background-color: #e67e22;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
 }
 </style>

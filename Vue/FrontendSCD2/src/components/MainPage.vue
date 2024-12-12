@@ -2,6 +2,7 @@
   <div>
     <h1>Published Posts</h1>
     <button @click="openCreatePostModal" class="create-button">Create Post</button>
+    <button @click="navigateToPendingPosts" class="navigate-button">Show Pending Posts</button>
 
     <!-- Modal pentru crearea unei postări -->
     <div v-if="showModal" class="modal">
@@ -129,6 +130,10 @@ export default {
     closeCommentModal() {
       this.showCommentModal = false;
     },
+
+    navigateToPendingPosts() {
+      this.$router.push("/pending");
+    },
     async createPost() {
       try {
         const payload = {
@@ -181,7 +186,9 @@ export default {
     const response = await axios.get("http://localhost:8083/getAllPosts");
     this.publishedPosts = response.data
       .filter((post) => post.status === "PUBLISHED")
-      .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn)); // Sortează în ordine descrescătoare
+          .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn)); // Sortează în ordine descrescătoare
+
+    
   } catch (error) {
     console.error("Error fetching posts:", error);
   }
@@ -221,7 +228,7 @@ h1 {
 }
 
 /* Stil pentru butonul de creare */
-.create-button {
+.create-button, .navigate-button {
   display: block;
   margin: 20px auto;
   padding: 10px 20px;
@@ -245,7 +252,7 @@ h1 {
   margin-top: 10px;
 }
 
-.create-button:hover {
+.create-button:hover, .navigate-button:hover {
   background-color: #933f1e;
 }
 

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,17 +25,6 @@ public class UserController {
         this.userService = userService;
     }
 
-//    @PostMapping("/createUser")
-//    public ResponseEntity<?> createUser(@RequestBody UserEntity userEntity) {
-//        System.out.println("Received user data: " + userEntity);
-//        try {
-//            UserEntity savedUser = userRepository.save(userEntity);
-//            return ResponseEntity.ok(savedUser);
-//        } catch (Exception e) {
-//            System.out.println("Error: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating user");
-//        }
-//    }
     @PostMapping("/createUser")
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity user){
         UserEntity createdUser = userService.createUser(user);
@@ -64,7 +54,6 @@ public class UserController {
         }
     }
 
-
     @GetMapping("/getUserId")
     public ResponseEntity<Integer> getUserId(@RequestParam String name, @RequestParam String email) {
         try {
@@ -73,5 +62,13 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+
+    @GetMapping("/checkUser")
+    public ResponseEntity<Map<String, Boolean>> checkUser(@RequestParam String name, @RequestParam String email) {
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("nameExists", userRepository.findByName(name).isPresent());
+        result.put("emailExists", userRepository.findByEmail(email).isPresent());
+        return ResponseEntity.ok(result);
     }
 }
